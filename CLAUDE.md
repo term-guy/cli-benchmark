@@ -33,7 +33,7 @@ The entry point is `bench.py` (`main()`), which parses args, displays a progress
 
 **`benchmarks/{cpu,disk,memory,database,git}.py`** — one file per category. Each exposes a `run_all(quick: bool) -> List[BenchmarkResult]` function and individual `bench_*` functions. Benchmarks generate their own temp files/dirs and clean up in `finally` blocks. Git benchmarks skip gracefully if `git` is not on `PATH`.
 
-**`benchmarks/reporter.py`** — rendering and scoring. `HIGHER_IS_BETTER` and `SCORE_REFERENCE` dicts define the semantics of each benchmark name. The overall score (0–100) is the geometric mean of per-benchmark metrics normalized against `SCORE_REFERENCE` values, scaled by 50. `save_report()` writes JSON to `results/bench_<hostname>_<timestamp>.json`.
+**`benchmarks/reporter.py`** — rendering and scoring. `HIGHER_IS_BETTER`, `SCORE_REFERENCE`, and `CATEGORY_WEIGHTS` define benchmark semantics. Each benchmark is scored 0–100 via `_bench_score()` (log2 scale, 1× ref = 50 pts). Category scores are simple averages; the overall score is a weighted average across categories. `save_report()` writes JSON to `results/bench_<hostname>_<timestamp>.json`.
 
 **`benchmarks/sysinfo.py`** — collects hostname, OS, CPU, RAM, and disk info into a `SystemInfo` dataclass.
 

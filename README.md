@@ -8,6 +8,7 @@ A cross-platform performance benchmark tool that measures real-world performance
 
 ```bash
 uv venv && uv pip install -e .
+source .venv/bin/activate
 ```
 
 ### Using pip
@@ -36,6 +37,52 @@ cli-benchmark --output /tmp/my_report.json
 
 # Disable color output
 cli-benchmark --no-color
+```
+
+## Example Output
+
+```
+╭──────────────────────────── System Info ──────-──────────────────────╮
+│  Hostname  myserver                                                  │
+│  OS        Ubuntu 22.04 / macOS 14.4                                 │
+│  Kernel    5.15.0-89-generic / Darwin 23.4.0                         │
+│  CPU       Intel(R) Xeon(R) E5-2680 v4 @ 2.40GHz / Apple M3 Pro      │
+│  Cores     8 logical / 4 physical                                    │
+│  RAM       16,384 MB total / 12,048 MB available                     │
+│  Disk      /home/user  200.0 GB total / 120.5 GB free                │
+│  Python    3.11.5                                                    │
+│  Rich      13.7.0                                                    │
+╰───────-──────────────────────────────────────────────────────────────╯
+
+⠋ CPU benchmarks      0:00:03  running…
+⠙ Disk I/O benchmarks 0:00:00  waiting…
+...
+
+                          CPU
+┏━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━┳━━━━━━┳━━━━━━━━━━━━━┳━━━━━━━┳━━━━━━━━━━┓
+┃ Benchmark          ┃   Result ┃ Unit ┃    Duration ┃ Score ┃  Rating  ┃
+┡━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━╇━━━━━━╇━━━━━━━━━━━━━╇━━━━━━━╇━━━━━━━━━━┩
+│ cpu.hashing        │  2,341.5 │ MB/s │      0.03s  │    97 │ ████████ │
+│ cpu.compression    │    412.3 │ MB/s │      0.05s  │    89 │ ███████░ │
+│ cpu.prime_sieve    │     82.3 │   ms │      0.82s  │    74 │ ██████░░ │
+│ cpu.multicore      │  1,418.0 │ MB/s │      1.12s  │    91 │ ████████ │
+├────────────────────┼──────────┼──────┼─────────────┼───────┼──────────┤
+│                    │          │      │ Category avg│    88 │ ███████░ │
+└────────────────────┴──────────┴──────┴─────────────┴───────┴──────────┘
+
+╭──────────────────────────── Summary ───────────────────────-─────╮
+│ Total time:  47.3s                                               │
+│ Benchmarks: 21 passed  0 skipped  0 errored                      │
+│ Report:     results/bench_myserver_20240115_103047.json          │
+│ Score:      78.2 / 100  —  A  🟢 Fast                            │
+│                                                                  │
+│ Category   Score  Grade  Weight                                  │
+│ CPU         88.0      A     25%  ████████████                    │
+│ DISK        81.5      A     25%  ██████████░░                    │
+│ MEMORY      74.2      B     20%  █████████░░░                    │
+│ DATABASE    71.8      B     20%  █████████░░░                    │
+│ GIT         65.3      A     10%  ████████░░░░                    │
+╰──────────────────────────────────────────────────────────────────╯
 ```
 
 ## CLI Flags
@@ -103,13 +150,20 @@ Results are saved to `results/bench_<hostname>_<YYYYMMDD_HHMMSS>.json` after eve
 
 ### Score Calculation
 
-The overall score (0–100) is the geometric mean of per-benchmark normalized values, where each benchmark is normalized against a reference value representing a modern mid-range server:
+Each benchmark is scored 0–100 against calibrated reference values. A machine matching all references scores 50. The scale is logarithmic: 2× the reference → 75 pts, 4× → 100 pts, ½× → 25 pts.
 
-- **Score ≥ 65**: 🟢 Fast — above average server performance
-- **Score 35–64**: 🟡 Average — typical cloud VM or mid-range server
-- **Score < 35**: 🔴 Slow — constrained hardware, shared resources, or network storage
+Per-benchmark scores are averaged within each category, then combined into an overall score using weighted categories (CPU 25%, Disk 25%, Memory 20%, Database 20%, Git 10%).
 
-The rating bars in the results table (█████░░░) are scaled to the best result within each category. Colors indicate relative performance: green (top 33%), yellow (middle 33%), red (bottom 33%).
+| Grade | Score | Label |
+|-------|-------|-------|
+| S | ≥ 75 | 🟣 Exceptional |
+| A | 60–74 | 🟢 Fast |
+| B | 45–59 | 🔵 Above Average |
+| C | 30–44 | 🟡 Average |
+| D | 15–29 | 🟠 Below Average |
+| F | < 15 | 🔴 Slow |
+
+Rating bars (█████░░░) and colors reflect the score: green ≥ 75, yellow ≥ 45, red below.
 
 ### JSON Report Format
 
@@ -143,43 +197,13 @@ The rating bars in the results table (█████░░░) are scaled to th
       "skipped": false
     }
   ],
-  "score": 72.4
+  "score": 72.4,
+  "category_scores": {
+    "cpu": 88.0,
+    "disk": 81.5,
+    "memory": 74.2,
+    "database": 71.8,
+    "git": 65.3
+  }
 }
-```
-
-## Example Output
-
-```
-╭──────────────────────────── System Info ────────────────────────────╮
-│  Hostname  myserver                                                  │
-│  OS        Ubuntu 22.04 / macOS 14.4                                 │
-│  Kernel    5.15.0-89-generic / Darwin 23.4.0                         │
-│  CPU       Intel(R) Xeon(R) E5-2680 v4 @ 2.40GHz / Apple M3 Pro    │
-│  Cores     8 logical / 4 physical                                    │
-│  RAM       16,384 MB total / 12,048 MB available                     │
-│  Disk      /home/user  200.0 GB total / 120.5 GB free               │
-│  Python    3.11.5                                                    │
-│  Rich      13.7.0                                                    │
-╰─────────────────────────────────────────────────────────────────────╯
-
-⠋ CPU benchmarks      0:00:03  running…
-⠙ Disk I/O benchmarks 0:00:00  waiting…
-...
-
-                    CPU
-┏━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━┳━━━━━━┳━━━━━━━━━━┳━━━━━━━━━━┓
-┃ Benchmark          ┃   Result ┃ Unit ┃ Duration ┃  Rating  ┃
-┡━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━╇━━━━━━╇━━━━━━━━━━╇━━━━━━━━━━┩
-│ cpu.hashing        │  2,341.5 │ MB/s │   0.03s  │ ████████ │
-│ cpu.compression    │    412.3 │ MB/s │   0.05s  │ ██████░░ │
-│ cpu.prime_sieve    │    823.1 │   ms │   0.82s  │ ████████ │
-│ cpu.multicore      │ 14,218.0 │ MB/s │   1.12s  │ ████████ │
-└────────────────────┴──────────┴──────┴──────────┴──────────┘
-
-╭───────────────────────── Summary ──────────────────────────╮
-│ Total time:  47.3s                                          │
-│ Benchmarks: 21 passed  0 skipped  0 errored                │
-│ Report:     results/bench_myserver_20240115_103047.json     │
-│ Score:      72.4 / 100  —  🟢 Fast                         │
-╰─────────────────────────────────────────────────────────────╯
 ```
