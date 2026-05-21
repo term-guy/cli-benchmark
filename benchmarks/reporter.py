@@ -24,6 +24,8 @@ HIGHER_IS_BETTER: Dict[str, bool] = {
     "cpu.compression": True,
     "cpu.prime_sieve": False,
     "cpu.multicore": True,
+    "cpu.multicore_compression": True,
+    "cpu.multicore_sort": True,
     "disk.seq_write": True,
     "disk.seq_read": True,
     "disk.random_read": True,
@@ -52,6 +54,8 @@ SCORE_REFERENCE: Dict[str, float] = {
     "cpu.compression":      61.3,    # MB/s
     "cpu.prime_sieve":      97.2,    # ms  (lower=better)
     "cpu.multicore":       350.8,    # MB/s
+    "cpu.multicore_compression": 240.0,  # MB/s  (compress+decompress across all cores)
+    "cpu.multicore_sort":   22.0,    # Mops/s (total items sorted per second)
     "disk.seq_write":     1297.0,    # MB/s
     "disk.seq_read":      3944.0,    # MB/s
     "disk.random_read":  113157.0,   # IOPS
