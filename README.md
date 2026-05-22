@@ -2,6 +2,8 @@
 
 A cross-platform performance benchmark tool that measures real-world performance across CPU, disk I/O, memory, database, and git operations. Runs on Linux and macOS.
 
+<img width="876" height="499" alt="cli-benchmark-opt" src="https://github.com/user-attachments/assets/e0c144c8-59f2-4877-ba5f-39710cb2ac1f" />
+
 ## Install
 
 ### Using uv (recommended)
