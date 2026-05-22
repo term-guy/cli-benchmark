@@ -57,6 +57,13 @@ def _parse_args() -> argparse.Namespace:
         action="store_true",
         help="Disable color output",
     )
+    parser.add_argument(
+        "--delay",
+        metavar="MS",
+        type=int,
+        default=0,
+        help="Add a per-line delay (milliseconds) when printing results",
+    )
     return parser.parse_args()
 
 
@@ -150,7 +157,7 @@ def main() -> int:
     wall_time = time.perf_counter() - wall_start
 
     console.print()
-    print_results(console, results)
+    print_results(console, results, delay_ms=args.delay)
 
     score = compute_score(results)
 
@@ -160,7 +167,7 @@ def main() -> int:
         console.print(f"[red]Failed to save report: {exc}[/red]")
         report_path = "(not saved)"
 
-    print_summary(console, results, wall_time, report_path, score)
+    print_summary(console, results, wall_time, report_path, score, delay_ms=args.delay)
     return 0
 
 

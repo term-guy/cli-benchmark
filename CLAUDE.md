@@ -9,18 +9,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 uv venv && uv pip install -e .
 
 # Run all benchmarks
-cli-benchmark
-# or
-python bench.py
+cli-benchmark        # or: python bench.py
 
-# Quick smoke-test (10x smaller workloads, single iteration per test)
-cli-benchmark --quick
-
-# Run only specific categories
-cli-benchmark --only cpu,memory
-
-# Save report to a custom path
+# Common flags
+cli-benchmark --quick                  # 10x smaller workloads, smoke-test
+cli-benchmark --only cpu,memory        # subset of categories
 cli-benchmark --output /tmp/report.json
+cli-benchmark --no-color
+cli-benchmark --delay 32               # per-line print delay in ms (default: off)
 ```
 
 No test suite or linter is configured.

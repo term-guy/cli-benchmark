@@ -1,9 +1,12 @@
 from __future__ import annotations
 
 import dataclasses
+import io
 import json
 import math
 import os
+import sys
+import time
 from datetime import datetime
 from typing import Dict, List, Optional
 
@@ -54,8 +57,8 @@ SCORE_REFERENCE: Dict[str, float] = {
     "cpu.compression":      61.3,    # MB/s
     "cpu.prime_sieve":      97.2,    # ms  (lower=better)
     "cpu.multicore":       350.8,    # MB/s
-    "cpu.multicore_compression": 240.0,  # MB/s  (compress+decompress across all cores)
-    "cpu.multicore_sort":   22.0,    # Mops/s (total items sorted per second)
+    "cpu.multicore_compression": 178.5,  # MB/s  (compress+decompress across all cores)
+    "cpu.multicore_sort":   16.0,    # Mops/s (total items sorted per second)
     "disk.seq_write":     1297.0,    # MB/s
     "disk.seq_read":      3944.0,    # MB/s
     "disk.random_read":  113157.0,   # IOPS
@@ -196,6 +199,19 @@ def compute_score(results: List[BenchmarkResult]) -> float:
     return round(weighted_sum / total_weight, 1) if total_weight > 0 else 0.0
 
 
+def _print_delayed(console: Console, renderable, delay_s: float = 0.0) -> None:
+    if delay_s <= 0:
+        console.print(renderable)
+        return
+    buf = io.StringIO()
+    tmp = Console(file=buf, force_terminal=True, width=console.width or 120, highlight=False)
+    tmp.print(renderable)
+    for line in buf.getvalue().split("\n"):
+        sys.stdout.write(line + "\n")
+        sys.stdout.flush()
+        time.sleep(delay_s)
+
+
 def print_sysinfo(console: Console, info: SystemInfo) -> None:
     table = Table(show_header=False, box=None, padding=(0, 1))
     table.add_column("Key", style="bold cyan", no_wrap=True)
@@ -214,7 +230,7 @@ def print_sysinfo(console: Console, info: SystemInfo) -> None:
     console.print(Panel(table, title="[bold]System Info[/bold]", border_style="blue"))
 
 
-def print_results(console: Console, results: List[BenchmarkResult]) -> None:
+def print_results(console: Console, results: List[BenchmarkResult], delay_ms: int = 0) -> None:
     by_category: Dict[str, List[BenchmarkResult]] = {}
     for r in results:
         by_category.setdefault(r.category, []).append(r)
@@ -275,7 +291,7 @@ def print_results(console: Console, results: List[BenchmarkResult]) -> None:
                 _score_bar(cat_avg),
             )
 
-        console.print(table)
+        _print_delayed(console, table, delay_ms / 1000)
         console.print()
 
 
@@ -285,6 +301,7 @@ def print_summary(
     wall_time: float,
     report_path: str,
     score: float,
+    delay_ms: int = 0,
 ) -> None:
     passed = sum(1 for r in results if not r.skipped and r.error is None)
     skipped = sum(1 for r in results if r.skipped)
@@ -320,11 +337,11 @@ def print_summary(
             _score_bar(s, width=12),
         )
 
-    console.print(Panel(
+    _print_delayed(console, Panel(
         Group(stats, "", cat_table),
         title="[bold]Summary[/bold]",
         border_style="green",
-    ))
+    ), delay_ms / 1000)
 
 
 def save_report(

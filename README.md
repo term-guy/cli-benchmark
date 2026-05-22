@@ -37,6 +37,9 @@ cli-benchmark --output /tmp/my_report.json
 
 # Disable color output
 cli-benchmark --no-color
+
+# Print results line-by-line with a 32 ms delay
+cli-benchmark --delay 32
 ```
 
 ## Example Output
@@ -93,6 +96,7 @@ cli-benchmark --no-color
 | `--output PATH` | Override the default JSON report path (`results/bench_<host>_<timestamp>.json`) |
 | `--quick` | Use reduced workloads (~10x smaller) for a fast smoke test |
 | `--no-color` | Disable rich color output (useful for CI or log capture) |
+| `--delay MS` | Add a per-line delay (milliseconds) when printing results; disabled by default |
 
 ## What Each Benchmark Measures
 
@@ -103,7 +107,9 @@ cli-benchmark --no-color
 | `cpu.hashing` | SHA-256 of 64 MB buffer | MB/s |
 | `cpu.compression` | gzip compress+decompress 10 MB | MB/s |
 | `cpu.prime_sieve` | Sieve of Eratosthenes to 10,000,000 | ms |
-| `cpu.multicore` | Parallel SHA-256 across all logical cores | MB/s + efficiency % |
+| `cpu.multicore` | Parallel SHA-256 across all logical cores | MB/s |
+| `cpu.multicore_compression` | Parallel gzip compress+decompress across all cores | MB/s |
+| `cpu.multicore_sort` | Parallel float sort (1M items/core) across all cores | Mops/s |
 
 ### Disk I/O
 
